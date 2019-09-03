@@ -10,14 +10,16 @@ function validateRankingMode(
     mode: string,
 ) {
     if (mode !== undefined && !Object.values(rankingModeCodes).includes(mode)) {
-        response.error(
-            "ranking",
-            __(
-                "% must be within: %.",
-                __("Ranking mode"),
-                Object.values(rankingModeCodes).join(", "),
-            ),
-        );
+        if (response) {
+            response.error(
+                "ranking",
+                __(
+                    "% must be within: %.",
+                    __("Ranking mode"),
+                    Object.values(rankingModeCodes).join(", "),
+                ),
+            );
+        }
         return false;
     }
     return true;
@@ -162,13 +164,27 @@ export const showUserCredits = app(async ({ __, response, queryParameters, pathP
     return response.data(credits).statusCode(200);
 });
 
-export const assignWinnerPrize = app(async ({ __, response, queryParameters }) => {
+export const assignRankingWinner = app(async ({ __, response, queryParameters, event }) => {
     const { mode = rankingModeCodes.ALWAYS } = queryParameters;
-
     validateRankingMode(__, response, mode);
     if (response.hasError()) {
         return response.statusCode(422);
     }
+    await assignWinnerPrizeTask(mode);
+    return response.data(__("Operation completed successfully.")).statusCode(200);
+});
+
+export async function assignRankingWinnerSchedule(event: any) {
+    const { mode = rankingModeCodes.ALWAYS } = event;
+    console.log(event);
+    if (!validateRankingMode(null, null, mode)) {
+        return -1;
+    }
+    await assignWinnerPrizeTask(mode);
+    return 0;
+}
+
+async function assignWinnerPrizeTask(mode: string = rankingModeCodes.ALWAYS) {
     const sort = {};
     sort[`scores.${mode}.score`] = -1;
     sort[`scores.${mode}.updated_at`] = 1;
@@ -188,6 +204,4 @@ export const assignWinnerPrize = app(async ({ __, response, queryParameters }) =
     const v = {};
     v[`scores.${mode}.score`] = 0;
     await User.updateMany({}, v).exec();
-
-    return response.data(__("Operation completed successfully.")).statusCode(200);
-});
+}

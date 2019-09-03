@@ -15,3 +15,64 @@ provider:
   region: ${env:region}
   profile: ${env:profile}
   stage: ${env:stage}
+
+functions:
+  indexRanking:
+    handler: src/services/ranking/handler.indexRanking
+    events:
+    - http:
+        path: ranking
+        method: get
+        cors: true
+  showUserScore:
+    handler: src/services/ranking/handler.showUserScore
+    events:
+    - http:
+        path: users/{username}/score
+        method: get
+        cors: true
+  updateUserScore:
+    handler: src/services/ranking/handler.updateUserScore
+    events:
+    - http:
+        path: users/{username}/score/{score}
+        method: put
+        cors: true
+  showUserCredits:
+    handler: src/services/ranking/handler.showUserCredits
+    events:
+    - http:
+        path: users/{username}/credits
+        method: get
+        cors: true
+  assignRankingWinner:
+    handler: src/services/ranking/handler.assignRankingWinner
+    events:
+    - http:
+        path: assign-winner
+        method: post
+        cors: true 
+  assignRankingWinnerSchedule:
+    handler: src/services/ranking/handler.assignRankingWinnerSchedule
+    events:
+    - schedule:
+        rate: rate(1 minute) #cron(0 0 * * ? *)
+        enabled: true
+        input:
+          mode: daily
+          stageParams:
+            stage: ${env:stage}
+    - schedule:
+        rate: cron(0 0 * * 1 *)
+        enabled: true
+        input:
+          mode: weekly
+          stageParams:
+            stage: ${env:stage}
+    - schedule:
+        rate: cron(0 0 1 * ? *)
+        enabled: true
+        input:
+          mode: monthly
+          stageParams:
+            stage: ${env:stage}
