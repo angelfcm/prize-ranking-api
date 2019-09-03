@@ -1,2 +1,2 @@
 # quizz-fight-api
-API for Quizz Fight game
+API for Prize Ranking Game
