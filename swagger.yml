@@ -1,0 +1,215 @@
+openapi: 3.0.0
+servers:
+  - url: https://cda3jdm2pg.execute-api.us-west-2.amazonaws.com/dev
+info:
+  description: This is a simple API to get and update user ranking.
+  version: "1.0.0"
+  title: Prize Ranking API
+  contact:
+    email: angel@pixan.io
+  license:
+    name: Apache 2.0
+    url: 'http://www.apache.org/licenses/LICENSE-2.0.html'
+tags:
+  - name: Ranking Service
+    description: Ranking calls.
+paths:
+  /ranking:
+    get:
+      tags:
+        - Ranking Service
+      summary: Get ranking.
+      operationId: indexRanking
+      description: Get ranking by current day, week or month, or since ever (default).
+      parameters:
+        - $ref: '#/components/parameters/pageParam'
+        - $ref: '#/components/parameters/pageSizeParam'
+        - in: query
+          name: mode
+          description: Filter ranking by specified time.
+          required: false
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, always]
+            example: monthly
+      responses:
+        '206':
+          description: Paginated ranking list.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/RankingUser'
+                  meta:
+                    $ref: '#/components/schemas/PaginationMeta'
+        '422':
+          description: Some parameter is invalid.
+  /users/{id}/score:
+    get:
+      tags:
+        - Ranking Service
+      summary: Get user score.
+      operationId: showUserScore
+      description: Get user score by passsing its id.
+      parameters:
+        - in: path
+          name: id
+          description: User id.
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+        - in: query
+          name: mode
+          description: Filter user score by specified time (same case of ranking).
+          required: false
+          schema:
+            type: string
+            enum: [daily, weekly, monthly, always]
+            example: monthly
+      responses:
+        '200':
+          description: User score.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+                    example: 2560
+        '404':
+          description: User not found.
+  /users/{id}/score/{points}:
+    put:
+      tags:
+        - Ranking Service
+      summary: Set user score.
+      operationId: updateUserScore
+      description: Set new user score if this is greater than current score.
+      parameters:
+        - in: path
+          name: id
+          description: User id.
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+        - in: path
+          name: points
+          description: New score, must be integer and greater than zero.
+          required: true
+          schema:
+            type: integer
+            example: 3000
+      responses:
+        '200':
+          description: New user score. Note that if requested score is less than current score then it won't be affected and will return the old score.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+                    example: 2560
+        '404':
+          description: User not found.
+        '422':
+          description: New score is invalid.
+  /users/{id}/credits:
+    get:
+      tags:
+        - Ranking Service
+      summary: Get user credits count.
+      operationId: showUserCredits
+      description: Ger total user credits until now.
+      parameters:
+        - in: path
+          name: id
+          description: User id.
+          required: true
+          schema:
+            $ref: '#/components/schemas/id'
+      responses:
+        '200':
+          description: Total user credits.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+                    example: 120
+        '404':
+          description: User not found.
+  /winner-prize:
+    post:
+      tags:
+        - Ranking Service
+      summary: Assign credits to winner user.
+      operationId: assignWinnerPrize
+      description: Set credits to user with maximum score.
+      responses:
+        '200':
+          description: Operation completed successfully.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: integer
+                    example: 120
+components:
+  parameters:
+    pageParam:
+      in: query
+      name: page
+      description: >
+        Number of page you want to see.
+      schema:
+        type: number
+        example: 1
+    pageSizeParam:
+      in: query
+      name: page_size
+      description: >
+        Size of results you want peer page.
+      schema:
+        type: number
+        example: 1
+  schemas:
+    PaginationMeta:
+      type: object
+      properties:
+        page:
+          type: number
+          example: 1
+        page_size:
+          type: number
+          example: 12
+        has_more:
+          type: boolean
+          example: true
+    RankingUser:
+      type: object
+      properties:
+        id:
+          $ref: '#/components/schemas/id'
+        score:
+          type: number
+          example: 2560
+        updated_at:
+          $ref: '#/components/schemas/date'
+    id:
+      type: string
+      format: string
+      example: '5d5f448fb3acfa067b339544'
+    date:
+      type: string
+      format: 'ISO-8601'
+      example: '2011-10-05T14:48:00.000Z'
