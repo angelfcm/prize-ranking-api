@@ -53,21 +53,21 @@ functions:
         method: post
         cors: true 
     - schedule:
-        rate: cron(12 0 * * ? *) # 12pm every day.
+        rate: cron(0 12 * * ? *) # 12pm every day.
         enabled: true
         input:
           mode: daily
           stageParams:
             stage: ${env:stage}
     - schedule:
-        rate: cron(12 0 ? * MON *) # 12pm every monday.
+        rate: cron(0 12 ? * MON *) # 12pm every monday.
         enabled: true
         input:
           mode: weekly
           stageParams:
             stage: ${env:stage}
     - schedule:
-        rate: cron(12 0 1 * ? *) # 12pm first day every month.
+        rate: cron(0 12 1 * ? *) # 12pm first day every month.
         enabled: true
         input:
           mode: monthly

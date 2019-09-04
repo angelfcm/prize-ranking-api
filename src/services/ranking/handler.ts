@@ -9,7 +9,7 @@ function validateRankingMode(
     response: ResponseBuilder,
     mode: string,
 ) {
-    if (mode !== undefined && !Object.values(rankingModeCodes).includes(mode)) {
+    if (!Object.values(rankingModeCodes).includes(mode)) {
         if (response) {
             response.error(
                 "ranking",
@@ -26,11 +26,7 @@ function validateRankingMode(
 }
 
 export const indexRanking = app(async ({ __, response, queryParameters }) => {
-    const {
-        page = 0,
-        page_size: pageSize = paginationSizes.RANKING,
-        mode = rankingModeCodes.ALWAYS,
-    } = queryParameters;
+    const { page = 0, page_size: pageSize = paginationSizes.RANKING, mode } = queryParameters;
 
     if (page !== undefined && !validator.isInt(page.toString())) {
         response.error("page", __("% must be an integer.", __("Page")));
@@ -165,7 +161,7 @@ export const showUserCredits = app(async ({ __, response, queryParameters, pathP
 });
 
 export const assignRankingWinner = app(async ({ __, response, queryParameters, event }) => {
-    const { mode = event.mode || rankingModeCodes.ALWAYS } = queryParameters;
+    const { mode = event.mode } = queryParameters;
     validateRankingMode(__, response, mode);
     if (response.hasError()) {
         return response.statusCode(422);
