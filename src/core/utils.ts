@@ -5,9 +5,10 @@ import Busboy from "busboy";
  * Gets content type from lambda event.
  */
 export function getEventContentType(event: any) {
-    let contentType = event.headers["content-type"];
+    const { headers = {} } = event;
+    let contentType = headers["content-type"];
     if (!contentType) {
-        contentType = event.headers["Content-Type"];
+        contentType = headers["Content-Type"];
     }
     return contentType;
 }

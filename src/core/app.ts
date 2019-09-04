@@ -65,14 +65,14 @@ export default function app(...lambdas: AppLambdaType[]) {
             callback(err, res);
         };
         const appContext = {} as IAppContext;
-        appContext.event = event;
+        appContext.event = event || {};
         appContext.context = context;
         appContext.callback = callbackFixed;
         appContext.pathParameters = event.pathParameters || {};
         appContext.queryParameters = event.queryStringParameters || {};
         appContext.response = new ResponseBuilder();
         // Set default translator helper.
-        const clientLang = event.headers["Accept-Language"] || defaultLocale;
+        const clientLang = event.headers ? event.headers["Accept-Language"] : defaultLocale;
         const translator = new Translator(clientLang);
         appContext.__ = (text: string, ...params: any) => translator.translate(text, ...params);
         // Try to convert json input to fields or form request to fields.
