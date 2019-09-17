@@ -5,7 +5,7 @@ import Score from "./Score";
 if (!models.User) {
     const scores = {};
     Object.values(rankingModeCodes).forEach(
-        m => (scores[m] = { type: Score.schema, required: true }),
+        m => (scores[m] = { type: Score.schema, required: true, default: new Score() }),
     );
     const schema = new Schema(
         {
