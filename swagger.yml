@@ -1,6 +1,6 @@
 openapi: 3.0.0
 servers:
-  - url: https://cda3jdm2pg.execute-api.us-west-2.amazonaws.com/dev
+  - url: https://t6ztnckkuf.execute-api.us-west-2.amazonaws.com/dev
 info:
   description: This is a simple API to get and update user ranking.
   version: "1.0.0"
@@ -24,14 +24,7 @@ paths:
       parameters:
         - $ref: '#/components/parameters/pageParam'
         - $ref: '#/components/parameters/pageSizeParam'
-        - in: query
-          name: mode
-          description: Filter ranking by specified time.
-          required: false
-          schema:
-            type: string
-            enum: [daily, weekly, monthly, always]
-            example: monthly
+        - $ref: '#/components/parameters/rankingModeParam'
       responses:
         '206':
           description: Paginated ranking list.
@@ -48,7 +41,7 @@ paths:
                     $ref: '#/components/schemas/PaginationMeta'
         '422':
           description: Some parameter is invalid.
-  /users/{id}/score:
+  /users/{username}/score:
     get:
       tags:
         - Ranking Service
@@ -56,20 +49,8 @@ paths:
       operationId: showUserScore
       description: Get user score by passsing its id.
       parameters:
-        - in: path
-          name: id
-          description: User id.
-          required: true
-          schema:
-            $ref: '#/components/schemas/id'
-        - in: query
-          name: mode
-          description: Filter user score by specified time (same case of ranking).
-          required: false
-          schema:
-            type: string
-            enum: [daily, weekly, monthly, always]
-            example: monthly
+        - $ref: '#/components/parameters/usernameParam'
+        - $ref: '#/components/parameters/rankingModeParam'
       responses:
         '200':
           description: User score.
@@ -83,7 +64,7 @@ paths:
                     example: 2560
         '404':
           description: User not found.
-  /users/{id}/score/{points}:
+  /users/{username}/score/{points}:
     put:
       tags:
         - Ranking Service
@@ -91,12 +72,7 @@ paths:
       operationId: updateUserScore
       description: Set new user score if this is greater than current score.
       parameters:
-        - in: path
-          name: id
-          description: User id.
-          required: true
-          schema:
-            $ref: '#/components/schemas/id'
+        - $ref: '#/components/parameters/usernameParam'
         - in: path
           name: points
           description: New score, must be integer and greater than zero.
@@ -119,7 +95,7 @@ paths:
           description: User not found.
         '422':
           description: New score is invalid.
-  /users/{id}/credits:
+  /users/{username}/credits:
     get:
       tags:
         - Ranking Service
@@ -127,12 +103,7 @@ paths:
       operationId: showUserCredits
       description: Ger total user credits until now.
       parameters:
-        - in: path
-          name: id
-          description: User id.
-          required: true
-          schema:
-            $ref: '#/components/schemas/id'
+        - $ref: '#/components/parameters/usernameParam'
       responses:
         '200':
           description: Total user credits.
@@ -146,13 +117,14 @@ paths:
                     example: 120
         '404':
           description: User not found.
-  /winner-prize:
+  /assign-winner:
     post:
       tags:
         - Ranking Service
-      summary: Assign credits to winner user.
+      summary: Assign credits to winner user(s) and reset corresponded ranking.
       operationId: assignWinnerPrize
-      description: Set credits to user with maximum score.
+      parameters:
+        - $ref: '#/components/parameters/rankingModeParam'
       responses:
         '200':
           description: Operation completed successfully.
@@ -181,7 +153,22 @@ components:
         Size of results you want peer page.
       schema:
         type: number
-        example: 1
+        example: 12
+    usernameParam:
+      in: path
+      name: username
+      description: Provider username.
+      required: true
+      schema:
+        $ref: '#/components/schemas/username'
+    rankingModeParam: 
+      in: query
+      name: mode
+      description: Filter user score by specified time.
+      required: true
+      schema:
+        type: string
+        enum: [daily, weekly, monthly, always]
   schemas:
     PaginationMeta:
       type: object
@@ -198,17 +185,17 @@ components:
     RankingUser:
       type: object
       properties:
-        id:
-          $ref: '#/components/schemas/id'
+        username:
+          $ref: '#/components/schemas/username'
         score:
           type: number
           example: 2560
         updated_at:
           $ref: '#/components/schemas/date'
-    id:
+    username:
       type: string
       format: string
-      example: '5d5f448fb3acfa067b339544'
+      example: 'Master Chief 117'
     date:
       type: string
       format: 'ISO-8601'
