@@ -73,3 +73,10 @@ functions:
           mode: monthly
           stageParams:
             stage: ${env:stage}
+  exchange:
+    handler: src/services/ranking/handler.exchange
+    events:
+    - http:
+        path: users/{username}/exchange
+        method: post
+        cors: true

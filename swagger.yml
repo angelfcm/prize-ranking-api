@@ -91,8 +91,6 @@ paths:
                   data:
                     type: integer
                     example: 2560
-        '404':
-          description: User not found.
         '422':
           description: New score is invalid.
   /users/{username}/credits:
@@ -127,7 +125,7 @@ paths:
         - $ref: '#/components/parameters/rankingModeParam'
       responses:
         '200':
-          description: Operation completed successfully.
+          description: Operation successfully completed.
           content:
             application/json:
               schema:
@@ -136,6 +134,50 @@ paths:
                   data:
                     type: integer
                     example: 120
+  /users/{username}/exchange:
+    post:
+      tags:
+        - Ranking Service
+      summary: Exchange user's points by seeds or drops, 1 seed = 5 points, 1 drop = 1 point.
+      operationId: exchangePoints
+      parameters:
+        - $ref: '#/components/parameters/usernameParam'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                uid:
+                  type: string
+                  example: 9Ma2Qj8b6
+                currency:
+                  type: string
+                  enum: [seed, drop]
+                amount:
+                  type: number
+                  example: 1
+              required:
+                - username
+                - uid
+                - currency
+                - amount
+      responses:
+        '200':
+          description: Operation successfully completed.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: number
+                    example: 20
+        '422':
+          description: Some input field is invalid or exchange amount is not enought.
+        '502':
+          description: Proxy error (api where exchange amount is deposit).
 components:
   parameters:
     pageParam:

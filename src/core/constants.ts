@@ -17,3 +17,13 @@ export const winnerCredits = {
     MONTHLY: 30,
     WEEKLY: 7,
 };
+
+export const currencyTypes = {
+    DROP: "drop",
+    SEED: "seed",
+};
+
+export const currencyExchangeRates = {
+    DROP: 1,
+    SEED: 5,
+};

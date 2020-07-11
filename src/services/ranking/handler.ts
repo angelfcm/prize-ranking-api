@@ -1,6 +1,13 @@
 import validator from "validator";
 import app from "../../core/app";
-import { paginationSizes, rankingModeCodes, winnerCredits } from "../../core/constants";
+import md5 from 'md5';
+import {
+    currencyExchangeRates,
+    currencyTypes,
+    paginationSizes,
+    rankingModeCodes,
+    winnerCredits,
+} from "../../core/constants";
 import ResponseBuilder from "../../core/ResponseBuilder";
 import User from "../../models/User";
 
@@ -132,7 +139,7 @@ export const updateUserScore = app(async ({ __, response, queryParameters, pathP
     });
     await user.save();
 
-    return response.data(__("Operation completed successfully.")).statusCode(200);
+    return response.data(__("Operation successfully completed.")).statusCode(200);
 });
 
 export const showUserCredits = app(async ({ __, response, queryParameters, pathParameters }) => {
@@ -185,5 +192,67 @@ export const assignRankingWinner = app(async ({ __, response, queryParameters, e
     const v = {};
     v[`scores.${mode}.score`] = 0;
     await User.updateMany({}, v).exec();
-    return response.data(__("Operation completed successfully.")).statusCode(200);
+    return response.data(__("Operation successfully completed.")).statusCode(200);
+});
+
+export const exchange = app(async ({ __, response, fields, pathParameters }) => {
+    const { username: providerUserId } = pathParameters;
+    const { uid, currency, amount } = fields;
+
+    if (!uid) {
+        response.error("uid", __("% is required.", __("uid")));
+    }
+    if (!currency) {
+        response.error("currency", __("% is required.", __("Currency type")));
+    }
+    if (currency && !Object.values(currencyTypes).includes(currency)) {
+        response.error(
+            "currency",
+            __(
+                "% must be within: %.",
+                __("Currency type"),
+                Object.values(currencyTypes).join(", "),
+            ),
+        );
+    }
+    if (!amount || amount < 0 || isNaN(amount)) {
+        response.error("amount", __("% is required.", __("Exchange amount")));
+    }
+    if (isNaN(amount)) {
+        response.error("amount", __("% must be numeric.", __("Exchange amount")));
+    }
+    if (response.hasError()) {
+        return response.statusCode(422);
+    }
+    let currencyKey = null;
+    for (const key in currencyTypes) {
+        if (currencyTypes[key] === currency) {
+            currencyKey = key;
+            break;
+        }
+    }
+    const exchangeRate = currencyExchangeRates[currencyKey];
+    const exchangeAmount = amount * exchangeRate;
+    const user: any = await User.findOne({
+        provider_user_id: providerUserId,
+    });
+    const credits = user ? user.credits : 0;
+    if (exchangeAmount > credits) {
+        return response.error("amount", __("User hasn't enought credits to exchange."));
+    }
+    const token = "XsTbmBfKmC576ILgskD5srU8q3bgUsU";
+    const signature = md5(`${uid}:${amount}:${token}`);
+    const url = `https://services.socialpod.app/api/v3/rewards/game/drops?uid=${uid}&signature=${signature}&quantity=${exchangeAmount}`;
+    try {
+        const res = await fetch(url);
+        if (res.status !== 200) {
+            throw res;
+        }
+        user.credits -= exchangeAmount;
+        user.save();
+        return response.data(exchangeAmount).statusCode(200);
+    } catch (err) {
+        console.log(err);
+        return response.error("error", __("There was an unexpected response from proxy."));
+    }
 });
