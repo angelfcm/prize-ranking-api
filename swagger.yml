@@ -1,6 +1,6 @@
 openapi: 3.0.0
 servers:
-  - url: https://t6ztnckkuf.execute-api.us-west-2.amazonaws.com/dev
+  - url:  https://94hhu7cqel.execute-api.us-west-2.amazonaws.com/dev
 info:
   description: This is a simple API to get and update user ranking.
   version: "1.0.0"

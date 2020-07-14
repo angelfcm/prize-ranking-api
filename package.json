@@ -13,7 +13,8 @@
     "lint": "tslint 'src/**/*.ts'",
     "prettier-fix": "prettier 'src/**/*.ts'",
     "seed-dev": "ts-node src/db/seeders/seed --env dev --reset",
-    "deploy-dev": "serverless deploy --env dev"
+    "deploy-dev": "serverless deploy --env dev",
+    "deploy-prod": "serverless deploy --env prod"
   },
   "dependencies": {
     "aws-sdk": "^2.520.0",
