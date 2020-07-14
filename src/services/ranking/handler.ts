@@ -1,9 +1,12 @@
+import md5 from "md5";
 import validator from "validator";
 import app from "../../core/app";
-import md5 from 'md5';
 import {
+    currencyEndpoints,
     currencyExchangeRates,
     currencyTypes,
+    exchangeToken,
+    exchangeUrl,
     paginationSizes,
     rankingModeCodes,
     winnerCredits,
@@ -221,6 +224,9 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
     if (isNaN(amount)) {
         response.error("amount", __("% must be numeric.", __("Exchange amount")));
     }
+    if (Math.ceil(amount) !== parseFloat(amount)) {
+        response.error("amount", __("% must be an integer.", __("Exchange amount")));
+    }
     if (response.hasError()) {
         return response.statusCode(422);
     }
@@ -232,6 +238,7 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
         }
     }
     const exchangeRate = currencyExchangeRates[currencyKey];
+    const currencyEndpoint = currencyEndpoints[currencyKey];
     const exchangeAmount = amount * exchangeRate;
     const user: any = await User.findOne({
         provider_user_id: providerUserId,
@@ -240,9 +247,8 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
     if (exchangeAmount > credits) {
         return response.error("amount", __("User hasn't enought credits to exchange."));
     }
-    const token = "XsTbmBfKmC576ILgskD5srU8q3bgUsU";
-    const signature = md5(`${uid}:${amount}:${token}`);
-    const url = `https://services.socialpod.app/api/v3/rewards/game/drops?uid=${uid}&signature=${signature}&quantity=${exchangeAmount}`;
+    const signature = md5(`${uid}:${amount}:${exchangeToken}`);
+    const url = `${exchangeUrl}/${currencyEndpoint}?uid=${uid}&signature=${signature}&quantity=${amount}`;
     try {
         const res = await fetch(url);
         if (res.status !== 200) {
@@ -252,7 +258,7 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
         user.save();
         return response.data(exchangeAmount).statusCode(200);
     } catch (err) {
-        console.log(err);
+        console.log(err, url);
         return response.error("error", __("There was an unexpected response from proxy."));
     }
 });
