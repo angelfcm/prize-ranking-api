@@ -219,13 +219,15 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
         );
     }
     if (!amount || amount < 0 || isNaN(amount)) {
-        response.error("amount", __("% is required.", __("Exchange amount")));
+        response.error("amount", __("% is required.", __("Exchange amount"))).statusCode(422);
     }
     if (isNaN(amount)) {
-        response.error("amount", __("% must be numeric.", __("Exchange amount")));
+        response.error("amount", __("% must be numeric.", __("Exchange amount"))).statusCode(422);
     }
     if (Math.ceil(amount) !== parseFloat(amount)) {
-        response.error("amount", __("% must be an integer.", __("Exchange amount")));
+        response
+            .error("amount", __("% must be an integer.", __("Exchange amount")))
+            .statusCode(422);
     }
     if (response.hasError()) {
         return response.statusCode(422);
@@ -245,7 +247,9 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
     });
     const credits = user ? user.credits : 0;
     if (exchangeAmount > credits) {
-        return response.error("amount", __("User hasn't enought credits to exchange."));
+        return response
+            .error("amount", __("User hasn't enought credits to exchange."))
+            .statusCode(422);
     }
     const signature = md5(`${uid}:${amount}:${exchangeToken}`);
     const url = `${exchangeUrl}/${currencyEndpoint}?uid=${uid}&signature=${signature}&quantity=${amount}`;
