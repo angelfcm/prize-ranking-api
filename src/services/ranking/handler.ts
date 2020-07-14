@@ -219,15 +219,13 @@ export const exchange = app(async ({ __, response, fields, pathParameters }) => 
         );
     }
     if (!amount || amount < 0 || isNaN(amount)) {
-        response.error("amount", __("% is required.", __("Exchange amount"))).statusCode(422);
+        response.error("amount", __("% is required.", __("Exchange amount")));
     }
     if (isNaN(amount)) {
-        response.error("amount", __("% must be numeric.", __("Exchange amount"))).statusCode(422);
+        response.error("amount", __("% must be numeric.", __("Exchange amount")));
     }
     if (Math.ceil(amount) !== parseFloat(amount)) {
-        response
-            .error("amount", __("% must be an integer.", __("Exchange amount")))
-            .statusCode(422);
+        response.error("amount", __("% must be an integer.", __("Exchange amount")));
     }
     if (response.hasError()) {
         return response.statusCode(422);
