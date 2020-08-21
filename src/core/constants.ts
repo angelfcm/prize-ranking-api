@@ -13,9 +13,9 @@ export const rankingModeCodes = {
 
 export const winnerCredits = {
     ALWAYS: 0,
-    DAILY: 1,
-    MONTHLY: 30,
-    WEEKLY: 7,
+    DAILY: 100,
+    MONTHLY: 1000,
+    WEEKLY: 500,
 };
 
 export const currencyTypes = {
