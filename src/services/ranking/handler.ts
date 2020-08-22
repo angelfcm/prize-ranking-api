@@ -133,7 +133,7 @@ export const updateUserScore = app(async ({ __, response, queryParameters, pathP
     if (!user) {
         user = await User.create({ provider_user_id: providerUserId });
     }
-    Object.keys((user as any).scores).forEach((scoreName: any) => {
+    Object.values(rankingModeCodes).forEach((scoreName: any) => {
         const scoreDoc = (user as any).scores[scoreName];
         if (score > scoreDoc.score) {
             scoreDoc.score = score;
@@ -141,7 +141,6 @@ export const updateUserScore = app(async ({ __, response, queryParameters, pathP
         }
     });
     await user.save();
-
     return response.data(__("Operation successfully completed.")).statusCode(200);
 });
 
