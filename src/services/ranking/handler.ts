@@ -1,4 +1,5 @@
 import md5 from "md5";
+import fetch from "node-fetch";
 import validator from "validator";
 import app from "../../core/app";
 import {
